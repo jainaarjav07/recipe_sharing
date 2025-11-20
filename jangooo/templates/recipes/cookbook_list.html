@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Cookbooks</h1>
+    <a href="{% url 'cookbook_create' %}" class="btn btn-primary">Create New Cookbook</a>
+</div>
+
+<div class="row">
+    {% for cookbook in cookbooks %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ cookbook.name }}</h5>
+                    <p class="card-text">{{ cookbook.description|truncatewords:20 }}</p>
+                    <p class="text-muted">{{ cookbook.recipes.count }} recipe{{ cookbook.recipes.count|pluralize }}</p>
+                    <a href="{% url 'cookbook_detail' cookbook.pk %}" class="btn btn-primary">View Cookbook</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p>You haven't created any cookbooks yet. <a href="{% url 'cookbook_create' %}">Create your first cookbook</a>!</p>
+    {% endfor %}
+</div>
+{% endblock %}

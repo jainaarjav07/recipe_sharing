@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1>{{ recipe.title }}</h1>
+        <p class="text-muted">By {{ recipe.author.username }} | Created {{ recipe.created_at|date:"M d, Y" }}</p>
+        
+        {% if recipe.image %}
+            <img src="{{ recipe.image.url }}" class="img-fluid rounded mb-4" style="max-height: 400px;">
+        {% endif %}
+        
+        <p>{{ recipe.description }}</p>
+        
+        <div class="recipe-meta">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Prep Time:</strong> {{ recipe.prep_time }} min
+                </div>
+                <div class="col-md-3">
+                    <strong>Cook Time:</strong> {{ recipe.cook_time }} min
+                </div>
+                <div class="col-md-3">
+                    <strong>Servings:</strong> <span id="current-servings">{{ recipe.servings }}</span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Difficulty:</strong> {{ recipe.difficulty|title }}
+                </div>
+            </div>
+        </div>
+        
+        {% if user.is_authenticated %}
+            <div class="mb-3">
+                {% if user == recipe.author %}
+                    <a href="{% url 'recipe_edit' recipe.pk %}" class="btn btn-warning">Edit</a>
+                    <a href="{% url 'recipe_delete' recipe.pk %}" class="btn btn-danger">Delete</a>
+                {% endif %}
+                
+                <form method="post" action="{% url 'toggle_favorite' recipe.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn {% if is_favorite %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                        {% if is_favorite %}❤️ Remove from Favorites{% else %}🤍 Add to Favorites{% endif %}
+                    </button>
+                </form>
+                
+                {% if user_cookbooks %}
+                    <div class="dropdown d-inline">
+                        <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            Add to Cookbook
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% for cookbook in user_cookbooks %}
+                                <li><a class="dropdown-item" href="{% url 'add_to_cookbook' recipe.pk cookbook.pk %}">{{ cookbook.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card ingredient-scaler">
+            <div class="card-header">
+                <h5>Scale Recipe</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="servings-input">Servings:</label>
+                    <input type="number" id="servings-input" class="form-control" value="{{ recipe.servings }}" min="1">
+                    <button onclick="scaleRecipe()" class="btn btn-primary mt-2">Scale</button>
+                </div>
+            </div>
+        </div>
+        
+        {% if nutrition %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Nutrition (per serving)</h5>
+                </div>
+                <div class="card-body">
+                    {% if nutrition.calories_per_serving %}<p>Calories: {{ nutrition.calories_per_serving }}</p>{% endif %}
+                    {% if nutrition.protein %}<p>Protein: {{ nutrition.protein }}g</p>{% endif %}
+                    {% if nutrition.carbs %}<p>Carbs: {{ nutrition.carbs }}g</p>{% endif %}
+                    {% if nutrition.fat %}<p>Fat: {{ nutrition.fat }}g</p>{% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <h3>Ingredients</h3>
+        <div id="ingredients-list">
+            <pre>{{ recipe.ingredients }}</pre>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h3>Instructions</h3>
+        <div style="white-space: pre-line;">{{ recipe.instructions }}</div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-6">
+        {% if user.is_authenticated %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>Share Your Suggestion</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'add_suggestion' recipe.pk %}">
+                        {% csrf_token %}
+                        {{ suggestion_form.suggestion }}
+                        <button type="submit" class="btn btn-primary mt-2">Add Suggestion</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Community Suggestions ({{ suggestions.count }})</h5>
+            </div>
+            <div class="card-body">
+                {% for suggestion in suggestions %}
+                    <div class="mb-3 p-3" style="background: #f8f9fa; border-radius: 8px;">
+                        <strong>{{ suggestion.user.username }}</strong>
+                        <small class="text-muted">{{ suggestion.created_at|date:"M d, Y" }}</small>
+                        <p class="mt-2 mb-0">{{ suggestion.suggestion }}</p>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No suggestions yet. Be the first to share your thoughts!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function scaleRecipe() {
+    const servings = document.getElementById('servings-input').value;
+    fetch(`{% url 'scale_recipe' recipe.pk %}?servings=${servings}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('ingredients-list').innerHTML = `<pre>${data.scaled_ingredients}</pre>`;
+            document.getElementById('current-servings').textContent = data.servings;
+        });
+}
+</script>
+{% endblock %}

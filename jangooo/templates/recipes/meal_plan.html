@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>My Meal Plan</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Add to Meal Plan</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary">Add Meal</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <h3>Planned Meals</h3>
+        {% regroup meal_plans by date as meals_by_date %}
+        {% for date_group in meals_by_date %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>{{ date_group.grouper|date:"F d, Y" }}</h5>
+                </div>
+                <div class="card-body">
+                    {% for meal in date_group.list %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ meal.meal_type|title }}:</strong> 
+                                <a href="{% url 'recipe_detail' meal.recipe.pk %}">{{ meal.recipe.title }}</a>
+                                ({{ meal.servings }} serving{{ meal.servings|pluralize }})
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% empty %}
+            <p>No meals planned yet. Add some meals to get started!</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

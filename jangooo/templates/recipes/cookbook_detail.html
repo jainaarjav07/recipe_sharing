@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ cookbook.name }}</h1>
+<p>{{ cookbook.description }}</p>
+<p class="text-muted">Created {{ cookbook.created_at|date:"M d, Y" }}</p>
+
+<h3>Recipes ({{ cookbook.recipes.count }})</h3>
+<div class="row">
+    {% for recipe in cookbook.recipes.all %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                {% if recipe.image %}
+                    <img src="{{ recipe.image.url }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ recipe.title }}</h5>
+                    <p class="card-text">{{ recipe.description|truncatewords:15 }}</p>
+                    <a href="{% url 'recipe_detail' recipe.pk %}" class="btn btn-primary">View Recipe</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p>No recipes in this cookbook yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

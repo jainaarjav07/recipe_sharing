@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron bg-light p-5 rounded mb-4">
+    <h1 class="display-4">Welcome to Kitchen Stories</h1>
+    <p class="lead">Discover delicious recipes, create beautiful cookbooks, and plan memorable meals with love.</p>
+    {% if not user.is_authenticated %}
+        <a class="btn btn-primary btn-lg" href="{% url 'register' %}">Start Cooking</a>
+    {% endif %}
+</div>
+
+<h2>Recent Recipes</h2>
+<div class="row">
+    {% for recipe in recent_recipes %}
+        <div class="col-md-4 mb-4">
+            <div class="card recipe-card">
+                {% if recipe.image %}
+                    <img src="{{ recipe.image.url }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ recipe.title }}</h5>
+                    <p class="card-text">{{ recipe.description|truncatewords:20 }}</p>
+                    <p class="text-muted">
+                        <small>Prep: {{ recipe.prep_time }}min | Cook: {{ recipe.cook_time }}min | Serves: {{ recipe.servings }}</small>
+                    </p>
+                    <a href="{% url 'recipe_detail' recipe.pk %}" class="btn btn-primary">View Recipe</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

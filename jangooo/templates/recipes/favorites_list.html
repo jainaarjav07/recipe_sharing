@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>My Favorite Recipes</h1>
+
+<div class="row">
+    {% for favorite in favorites %}
+        <div class="col-md-4 mb-4">
+            <div class="card recipe-card">
+                {% if favorite.recipe.image %}
+                    <img src="{{ favorite.recipe.image.url }}" class="card-img-top recipe-image">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ favorite.recipe.title }}</h5>
+                    <p class="card-text">{{ favorite.recipe.description|truncatewords:15 }}</p>
+                    <p class="text-muted">
+                        <small>By {{ favorite.recipe.author.username }} | Added {{ favorite.created_at|date:"M d, Y" }}</small>
+                    </p>
+                    <a href="{% url 'recipe_detail' favorite.recipe.pk %}" class="btn btn-primary">View Recipe</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center">
+                <h3>No favorite recipes yet</h3>
+                <p>Start exploring recipes and add them to your favorites!</p>
+                <a href="{% url 'recipe_list' %}" class="btn btn-primary">Browse Recipes</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
